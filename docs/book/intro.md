@@ -1,0 +1,3 @@
+# phly-event-emitter
+
+This component provides ...

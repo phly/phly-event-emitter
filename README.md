@@ -42,7 +42,18 @@ here.
 
 ## Installation
 
-Run the following to install this library:
+You will first need to add a repository entry to your `composer.json`:
+
+```json
+"repositories": [
+    {
+        "type": "vcs",
+        "url": "https://github.com/weierophinney/event-dispatcher.git"
+    }
+],
+```
+
+Then, run the following to install this library:
 
 ```bash
 $ composer require phly/phly-event-emitter

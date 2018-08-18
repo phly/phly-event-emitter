@@ -1,5 +1,5 @@
 {
-    "name": "phly/event-dispatcher",
+    "name": "phly/phly-event-emitter",
     "description": "Experimental event dispatcher for PSR-14",
     "license": "BSD-3-Clause",
     "keywords": [

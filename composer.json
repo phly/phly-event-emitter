@@ -11,15 +11,11 @@
         "source": "https://github.com/phly/phly-event-emitter",
         "rss": "https://github.com/phly/phly-event-emitter/releases.atom"
     },
-    "repositories": [
-        {
-            "type": "vcs",
-            "url": "https://github.com/weierophinney/event-dispatcher.git"
-        }
-    ],
     "require": {
         "php": "^7.1",
-        "psr/event-dispatcher": "dev-feature/mwop-eliminate-cruft as 0.2.0",
+        "fig/event-dispatcher-util": "^0.6.1",
+        "psr/event-dispatcher-message": "^0.6",
+        "psr/event-dispatcher-task": "^0.6",
         "zendframework/zend-stdlib": "^3.2"
     },
     "require-dev": {
@@ -27,7 +23,9 @@
         "zendframework/zend-coding-standard": "~1.0.0"
     },
     "provide": {
-        "psr/event-dispatcher-implementation": "^1.0"
+        "psr/event-dispatcher-implementation": "^0.6",
+        "psr/event-dispatcher-message-implementation": "^0.6",
+        "psr/event-dispatcher-task-implementation": "^0.6"
     },
     "autoload": {
         "psr-4": {

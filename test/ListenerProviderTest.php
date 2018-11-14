@@ -9,19 +9,19 @@ declare(strict_types=1);
 
 namespace PhlyTest\EventEmitter;
 
-use Phly\EventEmitter\PrioritizedListenerAggregate;
+use Phly\EventEmitter\ListenerProvider;
 use PHPUnit\Framework\TestCase;
-use Psr\Event\Dispatcher\EventInterface;
-use Psr\Event\Dispatcher\ListenerAggregateInterface;
+use Psr\EventDispatcher\EventInterface;
+use Psr\EventDispatcher\ListenerProviderInterface;
 
-class PrioritizedListenerAggregateTest extends TestCase
+class ListenerProviderTest extends TestCase
 {
-    /** @var PrioritizedListenerAggregate */
+    /** @var ListenerProvider */
     protected $listeners;
 
     public function setUp()
     {
-        $this->listeners = new PrioritizedListenerAggregate();
+        $this->listeners = new ListenerProvider();
     }
 
     public function createListener()
@@ -35,25 +35,22 @@ class PrioritizedListenerAggregateTest extends TestCase
         $this->assertAttributeEmpty('listeners', $this->listeners);
     }
 
-    public function testReturnsOnlyListenersForTheGivenEventInPriorityOrder()
+    public function testReturnsOnlyListenersForTheGivenEvent()
     {
         $listener1 = $this->createListener();
         $listener2 = $this->createListener();
         $listener3 = $this->createListener();
 
-        $this->listeners->on(NonExistentEvent::class, $listener1, 100);
-        $this->listeners->on(TestAsset\TestEvent::class, $listener2, -100);
-        $this->listeners->on(EventInterface::class, $listener3, 100);
+        $this->listeners->on(NonExistentEvent::class, $listener1);
+        $this->listeners->on(TestAsset\TestEvent::class, $listener2);
+        $this->listeners->on(EventInterface::class, $listener3);
 
         $event = new TestAsset\TestEvent();
 
-        foreach ($this->listeners->getListenersForEvent($event) as $listener) {
-            $listeners[] = $listener;
-        }
+        $listeners = iterator_to_array($this->listeners->getListenersForEvent($event));
 
-        $this->assertSame([
-            $listener3,
-            $listener2,
-        ], $listeners);
+        $this->assertContains($listener2, $listeners);
+        $this->assertContains($listener3, $listeners);
+        $this->assertNotContains($listener1, $listeners);
     }
 }

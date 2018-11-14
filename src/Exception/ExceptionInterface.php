@@ -5,10 +5,12 @@
  * @license   https://github.com/phly/phly-event-emitter/blob/master/LICENSE.md New BSD License
  */
 
-namespace PhlyTest\EventEmitter\TestAsset;
+declare(strict_types=1);
 
-use Psr\EventDispatcher\EventInterface;
+namespace Phly\EventEmitter\Exception;
 
-class TestEvent implements EventInterface
+use Throwable;
+
+interface ExceptionInterface extends Throwable
 {
 }

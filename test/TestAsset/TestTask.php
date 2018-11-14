@@ -5,10 +5,12 @@
  * @license   https://github.com/phly/phly-event-emitter/blob/master/LICENSE.md New BSD License
  */
 
+declare(strict_types=1);
+
 namespace PhlyTest\EventEmitter\TestAsset;
 
-use Psr\EventDispatcher\EventInterface;
+use Psr\EventDispatcher\TaskInterface;
 
-class TestEvent implements EventInterface
+class TestTask implements TaskInterface
 {
 }

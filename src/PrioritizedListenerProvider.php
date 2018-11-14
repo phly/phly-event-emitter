@@ -9,13 +9,14 @@ declare(strict_types=1);
 
 namespace Phly\EventEmitter;
 
-use Psr\Event\Dispatcher\ListenerAggregateInterface;
-use Psr\Event\Dispatcher\EventInterface;
+use Psr\EventDispatcher\EventInterface;
+use Psr\EventDispatcher\ListenerProviderInterface;
+use Zend\Stdlib\PriorityQueue;
 
-class ListenerAggregate implements ListenerAggregateInterface
+class PrioritizedListenerProvider implements ListenerProviderInterface
 {
     /**
-     * @var callable[][]
+     * @var \stdClass[]
      */
     protected $listeners = [];
 
@@ -24,20 +25,21 @@ class ListenerAggregate implements ListenerAggregateInterface
      */
     public function getListenersForEvent(EventInterface $event): iterable
     {
+        $queue = new PriorityQueue();
         foreach ($this->listeners as $listenerData) {
-            if (! $event instanceof $listenerData->type) {
-                continue;
+            if ($event instanceof $listenerData->event) {
+                $queue->insert($listenerData->listener, $listenerData->priority);
             }
-
-            yield $listenerData->listener;
         }
+        return $queue;
     }
 
-    public function on(string $eventType, callable $listener) : void
+    public function on(string $eventType, callable $listener, int $priority = 1) : void
     {
         $this->listeners[] = (object) [
-            'type'     => $eventType,
+            'event'    => $eventType,
             'listener' => $listener,
+            'priority' => $priority,
         ];
     }
 }

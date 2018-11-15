@@ -9,36 +9,38 @@
 > being proposed for PSR-14. It is highly unstable in terms of API; use at your
 > own risk.
 
-This library provides an implementation of two proposed PSR-14 interfaces:
+This library provides an implementation of the following proposed PSR-14 interfaces:
 
-- `EventEmitter` implements `EmitterInterface`, and accepts a
-  `ListenerAggregateInterface` to its constructor. It then loops through
-  and triggers listeners returned for the event emitted, halting early if the
-  event indicates propagation has been stopped.
+- `ListenerProvider` implements `ListenerProviderInterface`, and allows you to
+  attach listeners to any message type. It then acts as a generator, looping
+  through each listener and testing if it handles the message type.
 
-- `ListenerAggregate` implements `ListenerAggregateInterface`, and allows you to
-  attach listeners to any event type. It then acts as a generator, looping
-  through each listener and testing it against the emitted type.
-
-- `PrioritizedListenerAggregate` also implements `ListenerAggregateInterface`,
-  and allows you to attach listeners to any event type, with an integer
+- `PrioritizedListenerProvider` also implements `ListenerProviderInterface`,
+  and allows you to attach listeners to any message type, with an integer
   _priority_. When listeners are retrieved, it loops through all attached
-  listeners, and injects those capable of listening to the emitted event to a
+  listeners, and injects those capable of listening to the emitted message to a
   priority queue, which it then returns.
 
-It DOES NOT provide the following interfaces:
+- `MessageNotifier` implements `MessageNotifierInterface`, and accepts a
+  `ListenerProviderInterface` to its constructor. It then loops through
+  and notifies listeners returned for the message. If any listeners throw
+  exceptions, it catches them, and, when all listeners have been notified,
+  throws a `Phly\EventEmitter\Exception\ExceptionAggregate` that aggregates all
+  of them; call the `getListenerExceptions()` method of that class to iterate
+  through them.
+
+- `TaskProcessor` implements `TaskProcessorInterface`, and accepts a
+  `ListenerProviderInterface` to its constructor. It then loops through
+  and processes listeners returned for the task, halting early if the
+  task is stoppable and indicates propagation has been stopped. Exceptions
+  thrown by listeners are not caught.
+
+It DOES NOT provide implementations for the following interfaces:
 
 - `EventInterface` (consumers will create these)
-- `EventArgumentsInterface` (consumers will create these, or use the PSR-14
-  `EventArguments` implementation)
-- `AttachableListenerAggregateInterface`
-- `PositionableListenerAggregateInterface`
-- `PrioritizedListenerAggregateInterface`
-- `ReflectableListenerAggregateInterface`
-
-The latter four may or may not be in the final spec; users and implementors can
-always implement the more generic `ListenerAggregateInterface`, as I have done
-here.
+- `MessageInterface` (consumers will create these)
+- `TaskInterface` (consumers will create these)
+- `StoppableTaskInterface` (consumers will create these)
 
 ## Installation
 
@@ -48,7 +50,7 @@ You will first need to add a repository entry to your `composer.json`:
 "repositories": [
     {
         "type": "vcs",
-        "url": "https://github.com/weierophinney/event-dispatcher.git"
+        "url": "https://github.com/phly/phly-event-emitter.git"
     }
 ],
 ```
@@ -63,47 +65,46 @@ $ composer require phly/phly-event-emitter
 
 ### Basic usage
 
-The following demonstrates using the `ListenerAggregate` to attach a listener.
-The aggregate is then used to seed an `EventEmitter`, which we then use to emit
-an event:
+The following demonstrates using the `ListenerProvider` to attach a listener.
+The provider is then used to seed either a `MessageNotifier` or `TaskProcessor`.
 
 ```php
-use Phly\EventEmitter\EventEmitter;
-use Phly\EventEmitter\ListenerAggregate;
+use Phly\EventEmitter\MessageNotifier;
+use Phly\EventEmitter\ListenerProvider;
 
-$listeners = new ListenerAggregate();
+$listeners = new ListenerProvider();
 $listeners->on(BootstrapEvent::class, function ($e) {
     // do something with the bootstrap event
 });
 
-$emitter = new EventEmitter($listeners);
-$emitter->emit(new BootstrapEvent($params));
+$notifier = new MessageNotifier($listeners);
+$notifier->notify(new BootstrapEvent($params));
 ```
 
 ### Prioritized listeners
 
-The following example uses a `PrioritizedListenerAggregate` to aggregate three
+The following example uses a `PrioritizedListenerProvider` to provide three
 different listeners, each with a different priority. Priorities are integers;
 higher priorities execute first, while lower priorities (including _negative_
 priorities) execute last.
 
 ```php
-use Phly\EventEmitter\EventEmitter;
-use Phly\EventEmitter\PrioritizedListenerAggregate;
+use Phly\EventEmitter\TaskProcessor;
+use Phly\EventEmitter\PrioritizedListenerProvider;
 
-$listeners = new PrioritizedListenerAggregate();
-$listeners->on(BootstrapEvent::class, function ($e) {
+$listeners = new PrioritizedListenerProvider();
+$listeners->on(BootstrapTask::class, function ($e) {
     echo 1, PHP_EOL;
 }, -100);
-$listeners->on(BootstrapEvent::class, function ($e) {
+$listeners->on(BootstrapTask::class, function ($e) {
     echo 2, PHP_EOL;
 }, 100);
-$listeners->on(BootstrapEvent::class, function ($e) {
+$listeners->on(BootstrapTask::class, function ($e) {
     echo 3, PHP_EOL;
 }, 1);
 
-$emitter = new EventEmitter($listeners);
-$emitter->emit(new BootstrapEvent($params));
+$processor = new TaskProcessor($listeners);
+$processor->process(new BootstrapTask($params));
 ```
 
 In the above, the output will become:
@@ -114,18 +115,6 @@ In the above, the output will become:
 1
 ```
 
-### Use cases
-
-This design allows for several use cases:
-
-- Single pub-sub style system to inject in any service that emits events. This
-  approach can be useful as it allows a single location for attaching _all_
-  listeners to _any_ event.
-- Subject/Observer style systems, with a discrete `EventEmitter` composed in a
-  target class that will emit events, allowing attachment only by those
-  interested in specific events the target class emits.
-- Workflow-style event systems, using the `PrioritizedListenerAggregate`.
-
 ## Support
 
-* [Issues](https://github.com/zendframework/phly-event-emitter/issues/)
+* [Issues](https://github.com/phly/phly-event-emitter/issues/)

@@ -1,5 +1,9 @@
 # phly-event-emitter
 
+> :warning: **Archived 2025-08-17**
+> 
+> Use at your own risk.
+
 [![Build Status](https://secure.travis-ci.org/phly/phly-event-emitter.svg?branch=master)](https://secure.travis-ci.org/phly/phly-event-emitter)
 [![Coverage Status](https://coveralls.io/repos/github/phly/phly-event-emitter/badge.svg?branch=master)](https://coveralls.io/github/phly/phly-event-emitter?branch=master)
 
